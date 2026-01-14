@@ -16,7 +16,8 @@ services:
     networks:
       - atlas-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U atlas-db-admin -d atlas_website_backend"]
+      test:
+        ["CMD-SHELL", "pg_isready -U atlas-db-admin -d atlas_website_backend"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -99,9 +100,9 @@ services:
     container_name: atlas-caddy
     restart: unless-stopped
     ports:
-      - "80:80"
-      - "443:443"
-      - "443:443/udp"
+      - "8080:80"
+      - "8443:443"
+      - "8443:443/udp"
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data
