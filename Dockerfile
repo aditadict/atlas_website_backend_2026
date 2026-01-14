@@ -1,7 +1,7 @@
 # Dockerfile for Laravel 12 with FrankenPHP/Octane
 # Production-ready configuration
 
-FROM dunglas/frankenphp:1-php8.3-alpine AS base
+FROM dunglas/frankenphp:1-php8.4-alpine AS base
 
 # Install system dependencies
 RUN apk add --no-cache \
