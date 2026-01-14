@@ -94,7 +94,7 @@ services:
       - "caddy=atlassite-api.atlasdigitalize.com"
       - "caddy.reverse_proxy={{upstreams 8000}}"
 
-  # Caddy Reverse Proxy with automatic HTTPS
+  # Caddy Reverse Proxy with Cloudflare SSL
   caddy:
     image: caddy:2-alpine
     container_name: atlas-caddy
@@ -105,6 +105,7 @@ services:
       - "9003:443/udp"
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./certs:/etc/caddy/certs:ro
       - caddy_data:/data
       - caddy_config:/config
     depends_on:
