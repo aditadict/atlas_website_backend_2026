@@ -7,13 +7,6 @@
 
     # Disable automatic HTTPS (using Cloudflare certificates)
     auto_https off
-
-    # Enable HTTP/3
-    servers {
-        protocol {
-            experimental_http3
-        }
-    }
 }
 
 # Main API domain
