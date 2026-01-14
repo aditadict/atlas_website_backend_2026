@@ -89,5 +89,6 @@ if [ $# -gt 0 ]; then
 else
     echo "  Server: FrankenPHP with Octane"
     echo "  Host: 0.0.0.0:8000"
-    exec php artisan octane:frankenphp --host=0.0.0.0 --port=8000
+    # Use --caddyfile to provide empty config, disabling FrankenPHP's built-in Caddy
+    exec php artisan octane:start --server=frankenphp --host=0.0.0.0 --port=8000 --caddyfile=/dev/null
 fi
