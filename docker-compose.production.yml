@@ -15,26 +15,12 @@ services:
     networks:
       - atlas-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U atlas-db-admin -d atlas_website_backend"]
-      interval: 10s
+      test:
+        ["CMD-SHELL", "pg_isready -U atlas-db-admin -d atlas_website_backend"]
+      interval: 5s
       timeout: 5s
-      retries: 5
-
-  # Redis Cache
-  redis:
-    image: redis:7-alpine
-    container_name: atlas-redis
-    restart: unless-stopped
-    command: redis-server --appendonly yes
-    volumes:
-      - redis_data:/data
-    networks:
-      - atlas-network
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      retries: 10
+      start_period: 10s
 
   # Laravel Application with Swoole
   app:
@@ -57,80 +43,12 @@ services:
       DB_DATABASE: atlas_website_backend
       DB_USERNAME: atlas-db-admin
       DB_PASSWORD: AtlasDigitaliz3@123
-      CACHE_STORE: redis
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-      QUEUE_CONNECTION: database
+      CACHE_STORE: file
+      QUEUE_CONNECTION: sync
       SESSION_DRIVER: database
       OCTANE_SERVER: swoole
     depends_on:
       postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-    networks:
-      - atlas-network
-
-  # Queue Worker
-  queue:
-    build:
-      context: .
-      dockerfile: Dockerfile.production
-      target: production
-    container_name: atlas-queue
-    restart: unless-stopped
-    command: ["php", "artisan", "queue:work", "--sleep=3", "--tries=3", "--max-time=3600"]
-    environment:
-      APP_NAME: "Atlas Digitalize API"
-      APP_ENV: production
-      APP_DEBUG: "false"
-      APP_URL: https://atlassite-api.atlasdigitalize.com
-      DB_CONNECTION: pgsql
-      DB_HOST: postgres
-      DB_PORT: 5432
-      DB_DATABASE: atlas_website_backend
-      DB_USERNAME: atlas-db-admin
-      DB_PASSWORD: AtlasDigitaliz3@123
-      CACHE_STORE: redis
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-      QUEUE_CONNECTION: database
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-    networks:
-      - atlas-network
-
-  # Scheduler
-  scheduler:
-    build:
-      context: .
-      dockerfile: Dockerfile.production
-      target: production
-    container_name: atlas-scheduler
-    restart: unless-stopped
-    command: ["sh", "-c", "while true; do php artisan schedule:run --verbose --no-interaction; sleep 60; done"]
-    environment:
-      APP_NAME: "Atlas Digitalize API"
-      APP_ENV: production
-      APP_DEBUG: "false"
-      APP_URL: https://atlassite-api.atlasdigitalize.com
-      DB_CONNECTION: pgsql
-      DB_HOST: postgres
-      DB_PORT: 5432
-      DB_DATABASE: atlas_website_backend
-      DB_USERNAME: atlas-db-admin
-      DB_PASSWORD: AtlasDigitaliz3@123
-      CACHE_STORE: redis
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-      QUEUE_CONNECTION: database
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
         condition: service_healthy
     networks:
       - atlas-network
@@ -141,4 +59,3 @@ networks:
 
 volumes:
   postgres_data:
-  redis_data:
