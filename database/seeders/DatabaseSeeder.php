@@ -17,11 +17,14 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         // Create admin user
-        User::factory()->create([
-            'name' => 'Admin',
-            'email' => 'admin@atlasdigitalize.com',
-            'password' => Hash::make('password'),
-        ]);
+        User::firstOrCreate(
+            ['email' => 'admin@atlasdigitalize.com'],
+            [
+                'name' => 'Admin',
+                'password' => Hash::make('AtlasDigitalize@!23'),
+                'email_verified_at' => now(),
+            ]
+        );
 
         // Seed all data
         $this->call([
