@@ -59,7 +59,7 @@ check_env() {
             exit 1
         fi
     fi
-    
+
     # Check if APP_KEY is set
     if ! grep -q "APP_KEY=base64:" .env; then
         log_warning "APP_KEY not set. Generating..."
@@ -91,7 +91,7 @@ wait_for_database() {
     log_info "Waiting for database to be ready..."
     local max_attempts=30
     local attempt=1
-    
+
     while [ $attempt -le $max_attempts ]; do
         if docker compose -f "$COMPOSE_FILE" exec -T postgres pg_isready -U atlas-db-admin -d atlas_website_backend > /dev/null 2>&1; then
             log_success "Database is ready"
@@ -101,7 +101,7 @@ wait_for_database() {
         sleep 2
         attempt=$((attempt + 1))
     done
-    
+
     log_error "Database failed to start within expected time"
     exit 1
 }
@@ -132,14 +132,14 @@ create_storage_link() {
 # Optimize Laravel for production
 optimize_laravel() {
     log_info "Optimizing Laravel for production..."
-    
+
     docker compose -f "$COMPOSE_FILE" exec -T app php artisan config:cache
     docker compose -f "$COMPOSE_FILE" exec -T app php artisan route:cache
     docker compose -f "$COMPOSE_FILE" exec -T app php artisan view:cache
     docker compose -f "$COMPOSE_FILE" exec -T app php artisan event:cache
     docker compose -f "$COMPOSE_FILE" exec -T app php artisan filament:cache-components
     docker compose -f "$COMPOSE_FILE" exec -T app php artisan icons:cache
-    
+
     log_success "Laravel optimized"
 }
 
@@ -190,7 +190,7 @@ full_deploy() {
     echo "  Domain: atlassite-api.atlasdigitalize.com"
     echo "=========================================="
     echo ""
-    
+
     check_docker
     check_env
     build_images
@@ -201,7 +201,7 @@ full_deploy() {
     create_storage_link
     publish_filament_assets
     optimize_laravel
-    
+
     echo ""
     log_success "Deployment completed successfully!"
     echo ""
