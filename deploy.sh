@@ -63,7 +63,8 @@ check_env() {
     # Check if APP_KEY is set
     if ! grep -q "APP_KEY=base64:" .env; then
         log_warning "APP_KEY not set. Generating..."
-        APP_KEY=$(docker run --rm -v "$(pwd)":/app -w /app dunglas/frankenphp:1-php8.3-alpine php artisan key:generate --show 2>/dev/null || php artisan key:generate --show)
+        # Generate a random 32-byte key and base64 encode it (no PHP/Composer required)
+        APP_KEY="base64:$(openssl rand -base64 32)"
         sed -i.bak "s|APP_KEY=.*|APP_KEY=${APP_KEY}|" .env
         rm -f .env.bak
         log_success "APP_KEY generated"
