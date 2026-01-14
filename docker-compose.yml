@@ -46,6 +46,8 @@ services:
       target: production
     container_name: atlas-app
     restart: unless-stopped
+    ports:
+      - "9005:8000"
     environment:
       APP_NAME: "Atlas Digitalize API"
       APP_ENV: production
