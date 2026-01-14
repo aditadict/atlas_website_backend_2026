@@ -5,8 +5,15 @@ echo "============================================"
 echo "  Laravel Filament Production Container"
 echo "============================================"
 
+# Generate APP_KEY if not set
+if [ -z "$APP_KEY" ] || [ "$APP_KEY" = "" ]; then
+    echo "[0/6] Generating APP_KEY..."
+    php artisan key:generate --force
+    echo "      APP_KEY generated!"
+fi
+
 # Wait for database
-echo "[1/5] Waiting for database..."
+echo "[1/6] Waiting for database..."
 MAX_ATTEMPTS=30
 ATTEMPT=1
 while [ $ATTEMPT -le $MAX_ATTEMPTS ]; do
@@ -25,19 +32,19 @@ if [ $ATTEMPT -gt $MAX_ATTEMPTS ]; then
 fi
 
 # Run migrations
-echo "[2/5] Running migrations..."
+echo "[2/6] Running migrations..."
 php artisan migrate --force
 
 # Create storage link
-echo "[3/5] Storage setup..."
+echo "[3/6] Storage setup..."
 php artisan storage:link 2>/dev/null || true
 
 # Publish Filament assets
-echo "[4/5] Publishing assets..."
+echo "[4/6] Publishing assets..."
 php artisan filament:assets
 
 # Cache for production
-echo "[5/5] Caching..."
+echo "[5/6] Caching..."
 php artisan config:cache
 php artisan route:cache
 php artisan view:cache
