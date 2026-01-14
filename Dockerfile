@@ -108,10 +108,10 @@ COPY composer.json composer.lock ./
 RUN composer install --no-dev --no-scripts --no-autoloader --prefer-dist
 
 # Copy package.json for npm
-COPY package.json package-lock.json* ./
+COPY package.json ./
 
-# Install npm production dependencies and build
-RUN npm ci --omit=dev
+# Install npm dependencies and build assets
+RUN npm install
 
 # Copy application files
 COPY . .
