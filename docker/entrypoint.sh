@@ -82,13 +82,12 @@ echo "============================================"
 echo ""
 
 # If a command is passed (e.g., from docker-compose), run it
-# Otherwise, start Octane
+# Otherwise, start the server
 if [ $# -gt 0 ]; then
     echo "  Running custom command: $@"
     exec "$@"
 else
-    echo "  Server: FrankenPHP with Octane"
+    echo "  Server: PHP Built-in Server"
     echo "  Host: 0.0.0.0:8000"
-    # Use --caddyfile to provide empty config, disabling FrankenPHP's built-in Caddy
-    exec php artisan octane:start --server=frankenphp --host=0.0.0.0 --port=8000 --caddyfile=/dev/null
+    exec php artisan serve --host=0.0.0.0 --port=8000
 fi
