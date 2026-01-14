@@ -61,7 +61,7 @@ if [ "$APP_ENV" = "production" ]; then
     php artisan view:cache
     php artisan event:cache
     echo "      Configuration cached!"
-    
+
     echo "[7/8] Caching Filament components..."
     php artisan filament:cache-components
     echo "      Filament components cached!"
@@ -74,13 +74,20 @@ else
 fi
 
 # Start the application
-echo "[8/8] Starting Laravel Octane with FrankenPHP..."
+echo "[8/8] Starting application..."
 echo ""
 echo "============================================"
 echo "  Application Ready!"
-echo "  Server: FrankenPHP with Octane"
-echo "  Host: 0.0.0.0:8000"
 echo "============================================"
 echo ""
 
-exec php artisan octane:frankenphp --host=0.0.0.0 --port=8000
+# If a command is passed (e.g., from docker-compose), run it
+# Otherwise, start Octane
+if [ $# -gt 0 ]; then
+    echo "  Running custom command: $@"
+    exec "$@"
+else
+    echo "  Server: FrankenPHP with Octane"
+    echo "  Host: 0.0.0.0:8000"
+    exec php artisan octane:frankenphp --host=0.0.0.0 --port=8000
+fi
