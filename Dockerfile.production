@@ -73,6 +73,9 @@ RUN composer install --no-dev --no-scripts --no-autoloader --prefer-dist
 # Copy application files
 COPY . .
 
+# Create .env file for Laravel (will use environment variables)
+RUN touch .env
+
 # Generate optimized autoload
 RUN composer dump-autoload --optimize --classmap-authoritative
 

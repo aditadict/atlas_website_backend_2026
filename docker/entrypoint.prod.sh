@@ -8,8 +8,9 @@ echo "============================================"
 # Generate APP_KEY if not set
 if [ -z "$APP_KEY" ] || [ "$APP_KEY" = "" ]; then
     echo "[0/6] Generating APP_KEY..."
-    php artisan key:generate --force
-    echo "      APP_KEY generated!"
+    export APP_KEY="base64:$(head -c 32 /dev/urandom | base64)"
+    echo "APP_KEY=$APP_KEY" > /app/.env
+    echo "      APP_KEY generated: $APP_KEY"
 fi
 
 # Wait for database
