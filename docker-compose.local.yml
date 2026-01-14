@@ -1,0 +1,101 @@
+# Docker Compose for Local Development
+# Usage: docker compose -f docker-compose.local.yml up -d
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: atlas-postgres-local
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: atlas_website_backend
+      POSTGRES_USER: atlas-db-admin
+      POSTGRES_PASSWORD: AtlasDigitaliz3@123
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_data_local:/var/lib/postgresql/data
+    ports:
+      - "5439:5432"
+    networks:
+      - atlas-network-local
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U atlas-db-admin -d atlas_website_backend"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: atlas-redis-local
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data_local:/data
+    ports:
+      - "6379:6379"
+    networks:
+      - atlas-network-local
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Laravel Application with FrankenPHP/Octane (Development)
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    container_name: atlas-app-local
+    restart: unless-stopped
+    environment:
+      APP_NAME: "Atlas Digitalize API"
+      APP_ENV: local
+      APP_DEBUG: "true"
+      APP_URL: http://localhost:8000
+      DB_CONNECTION: pgsql
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_DATABASE: atlas_website_backend
+      DB_USERNAME: atlas-db-admin
+      DB_PASSWORD: AtlasDigitaliz3@123
+      SESSION_DRIVER: database
+      QUEUE_CONNECTION: database
+      CACHE_STORE: redis
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      OCTANE_SERVER: frankenphp
+    volumes:
+      - .:/app
+      - /app/vendor
+      - /app/node_modules
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - atlas-network-local
+
+  # Mailpit for local email testing
+  mailpit:
+    image: axllent/mailpit
+    container_name: atlas-mailpit-local
+    restart: unless-stopped
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+    networks:
+      - atlas-network-local
+
+networks:
+  atlas-network-local:
+    driver: bridge
+
+volumes:
+  postgres_data_local:
+  redis_data_local:

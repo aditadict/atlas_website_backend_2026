@@ -1,0 +1,188 @@
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: atlas-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: atlas_website_backend
+      POSTGRES_USER: atlas-db-admin
+      POSTGRES_PASSWORD: AtlasDigitaliz3@123
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5439:5432"
+    networks:
+      - atlas-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U atlas-db-admin -d atlas_website_backend"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis Cache (optional but recommended for production)
+  redis:
+    image: redis:7-alpine
+    container_name: atlas-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    networks:
+      - atlas-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Laravel Application with FrankenPHP/Octane
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: atlas-app
+    restart: unless-stopped
+    environment:
+      APP_NAME: "Atlas Digitalize API"
+      APP_ENV: production
+      APP_DEBUG: "false"
+      APP_URL: https://atlassite-api.atlasdigitalize.com
+      APP_LOCALE: en
+      APP_FALLBACK_LOCALE: en
+      APP_FAKER_LOCALE: en_US
+      APP_MAINTENANCE_DRIVER: file
+      BCRYPT_ROUNDS: 12
+      LOG_CHANNEL: stack
+      LOG_STACK: single
+      LOG_DEPRECATIONS_CHANNEL: "null"
+      LOG_LEVEL: error
+      DB_CONNECTION: pgsql
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_DATABASE: atlas_website_backend
+      DB_USERNAME: atlas-db-admin
+      DB_PASSWORD: AtlasDigitaliz3@123
+      SESSION_DRIVER: database
+      SESSION_LIFETIME: 120
+      SESSION_ENCRYPT: "false"
+      SESSION_PATH: /
+      SESSION_DOMAIN: atlassite-api.atlasdigitalize.com
+      BROADCAST_CONNECTION: log
+      FILESYSTEM_DISK: local
+      QUEUE_CONNECTION: database
+      CACHE_STORE: redis
+      REDIS_CLIENT: phpredis
+      REDIS_HOST: redis
+      REDIS_PASSWORD: "null"
+      REDIS_PORT: 6379
+      OCTANE_SERVER: frankenphp
+    volumes:
+      - app_storage:/app/storage/app
+      - app_logs:/app/storage/logs
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - atlas-network
+    labels:
+      - "caddy=atlassite-api.atlasdigitalize.com"
+      - "caddy.reverse_proxy={{upstreams 8000}}"
+
+  # Caddy Reverse Proxy with automatic HTTPS
+  caddy:
+    image: caddy:2-alpine
+    container_name: atlas-caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - app
+    networks:
+      - atlas-network
+
+  # Queue Worker
+  queue:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: atlas-queue
+    restart: unless-stopped
+    command: php artisan queue:work --sleep=3 --tries=3 --max-time=3600
+    environment:
+      APP_NAME: "Atlas Digitalize API"
+      APP_ENV: production
+      APP_DEBUG: "false"
+      APP_URL: https://atlassite-api.atlasdigitalize.com
+      DB_CONNECTION: pgsql
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_DATABASE: atlas_website_backend
+      DB_USERNAME: atlas-db-admin
+      DB_PASSWORD: AtlasDigitaliz3@123
+      QUEUE_CONNECTION: database
+      CACHE_STORE: redis
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - atlas-network
+
+  # Scheduler (Cron)
+  scheduler:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: atlas-scheduler
+    restart: unless-stopped
+    command: sh -c "while true; do php artisan schedule:run --verbose --no-interaction & sleep 60; done"
+    environment:
+      APP_NAME: "Atlas Digitalize API"
+      APP_ENV: production
+      APP_DEBUG: "false"
+      APP_URL: https://atlassite-api.atlasdigitalize.com
+      DB_CONNECTION: pgsql
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_DATABASE: atlas_website_backend
+      DB_USERNAME: atlas-db-admin
+      DB_PASSWORD: AtlasDigitaliz3@123
+      QUEUE_CONNECTION: database
+      CACHE_STORE: redis
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - atlas-network
+
+networks:
+  atlas-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:
+  app_storage:
+  app_logs:
+  caddy_data:
+  caddy_config:

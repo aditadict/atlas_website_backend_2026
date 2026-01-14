@@ -1,0 +1,68 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# IDE
+.idea
+.vscode
+*.swp
+*.swo
+
+# Dependencies (will be installed during build)
+/vendor
+/node_modules
+
+# Environment files (use Docker environment variables instead)
+.env
+.env.local
+.env.*.local
+
+# Storage (use Docker volumes)
+/storage/app/*
+!/storage/app/.gitignore
+!/storage/app/public
+/storage/framework/cache/*
+!/storage/framework/cache/.gitignore
+/storage/framework/sessions/*
+!/storage/framework/sessions/.gitignore
+/storage/framework/views/*
+!/storage/framework/views/.gitignore
+/storage/logs/*
+!/storage/logs/.gitignore
+
+# Build artifacts
+/public/build
+/public/hot
+/public/storage
+
+# Testing
+/tests
+/.phpunit.cache
+/.phpunit.result.cache
+phpunit.xml
+
+# Documentation
+/docs
+*.md
+!README.md
+
+# Docker files in development
+docker-compose.override.yml
+docker-compose.local.yml
+
+# Misc
+.DS_Store
+Thumbs.db
+*.log
+npm-debug.log
+yarn-error.log
+
+# Pest/PHPUnit
+.pest
+.phpunit
+coverage/
+
+# Laravel specific
+/bootstrap/cache/*
+!/bootstrap/cache/.gitignore
