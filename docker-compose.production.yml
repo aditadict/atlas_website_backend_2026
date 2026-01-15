@@ -46,6 +46,8 @@ services:
       CACHE_STORE: file
       QUEUE_CONNECTION: sync
       SESSION_DRIVER: database
+      SESSION_DOMAIN: ".atlasdigitalize.com"
+      SESSION_SECURE_COOKIE: "true"
       OCTANE_SERVER: swoole
     depends_on:
       postgres:
