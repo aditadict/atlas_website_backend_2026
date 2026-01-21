@@ -62,11 +62,11 @@ class InsightController extends Controller
     public function show(string $slug): JsonResponse
     {
         $insight = Insight::with('seo')->where('slug', $slug)->firstOrFail();
-        
+
         // Get SEO data (custom or dynamic fallback)
         $seoData = $insight->seo;
         $dynamicSeo = $insight->getDynamicSEOData();
-        
+
         // Build SEO response with custom data or fallback to dynamic
         $seoResponse = [
             'title' => $seoData?->title ?? $dynamicSeo->title,
@@ -79,11 +79,11 @@ class InsightController extends Controller
             'modified_time' => $insight->updated_at?->toIso8601String(),
             'section' => $insight->category['en'] ?? null,
         ];
-        
+
         // Merge SEO data with insight
         $response = $insight->toArray();
         $response['seo'] = $seoResponse;
-        
+
         return response()->json($response);
     }
 
@@ -156,7 +156,8 @@ class InsightController extends Controller
             'is_helpful' => 'required|boolean'
         ]);
 
-        $ipAddress = $request->ip();
+        // Get real IP: Cloudflare sets CF-Connecting-IP, fallback to standard ip()
+        $ipAddress = $request->header('CF-Connecting-IP') ?? $request->ip();
 
         // Check if user already gave feedback for this insight
         $existingFeedback = InsightFeedback::where('insight_id', $insight->id)
