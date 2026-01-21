@@ -37,6 +37,7 @@ services:
       APP_ENV: production
       APP_DEBUG: "false"
       APP_URL: https://atlassite-api.atlasdigitalize.com
+      TRUSTED_PROXIES: "*"
       DB_CONNECTION: pgsql
       DB_HOST: postgres
       DB_PORT: 5432
