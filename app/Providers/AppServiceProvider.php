@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use Dedoc\Scramble\Scramble;
 use Dedoc\Scramble\Support\RouteInfo;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 use Dedoc\Scramble\Support\Generator\OpenApi;
 use Dedoc\Scramble\Support\Generator\Operation;
@@ -24,6 +25,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Force HTTPS in production (behind reverse proxy)
+        if ($this->app->environment('production')) {
+            URL::forceScheme('https');
+        }
         Scramble::configure()
             ->withDocumentTransformers(function (OpenApi $openApi) {
                 $openApi->secure(
