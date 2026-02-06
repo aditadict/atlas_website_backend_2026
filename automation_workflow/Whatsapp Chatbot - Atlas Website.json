@@ -1,0 +1,376 @@
+{
+  "name": "Whatsapp Chatbot - Atlas Website",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "@devlikeapro/n8n-nodes-waha.wahaTrigger",
+      "typeVersion": 202502,
+      "position": [
+        0,
+        0
+      ],
+      "id": "803df20b-490d-4195-bf95-8cdfade6884c",
+      "name": "WAHA Trigger",
+      "webhookId": "093b225e-9867-4fb0-a806-525afc2fabd2"
+    },
+    {
+      "parameters": {
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        224,
+        384
+      ],
+      "id": "bbe6e68c-f35e-4b1a-a4ca-38c7de1d7580",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "resource": "Chatting",
+        "operation": "Send Seen",
+        "participant": "",
+        "requestOptions": {}
+      },
+      "type": "@devlikeapro/n8n-nodes-waha.WAHA",
+      "typeVersion": 202502,
+      "position": [
+        672,
+        288
+      ],
+      "id": "b09fb3a0-235e-41db-9903-c1e26ac98b97",
+      "name": "Send Seen",
+      "credentials": {
+        "wahaApi": {
+          "id": "n5mRTjBO5rbghKbN",
+          "name": "WAHA Atlas Digitalize"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": "={{ $('Edit Fields').item.json.payload._data.body.length/5 }}"
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        896,
+        288
+      ],
+      "id": "cff7d30d-8b0b-404c-99bf-16bb78500511",
+      "name": "Wait",
+      "webhookId": "cbf3f716-639e-4756-9e4b-47ba7c20c2ea"
+    },
+    {
+      "parameters": {
+        "resource": "Chatting",
+        "operation": "Start Typing",
+        "session": "={{ $('Edit Fields').item.json.session }}",
+        "chatId": "={{ $('Edit Fields').item.json.payload.from }}",
+        "requestOptions": {}
+      },
+      "type": "@devlikeapro/n8n-nodes-waha.WAHA",
+      "typeVersion": 202502,
+      "position": [
+        1120,
+        288
+      ],
+      "id": "875cb2ba-d37a-444e-a53a-65cfa2582ce7",
+      "name": "Start Typing",
+      "credentials": {
+        "wahaApi": {
+          "id": "n5mRTjBO5rbghKbN",
+          "name": "WAHA Atlas Digitalize"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('Edit Fields').item.json.payload.body }}",
+        "options": {
+          "systemMessage": "Anda adalah customer service Toko & Bengkel Kaca Mobil Pelangi Glass, yang bertugas untuk mengecek stok barang, harga,dan sebagainya. Tujuannya menjawab pertanyaan customer. berikan pelayanan terbaik serta bahasa yang friendly & human fluent. jika informasi/data yang tanyakan tidak ada di tools, berikan jawaban yang sopan. jika datanya ada, sajikan datanya secara baik dan benar serta selalu gunakan format yang sama. Ketika memulai, tanyakan terlebih dahulu categories/kategori nya agar lebih sederhana, kemudian, pilihan category tersebut dijadikan filter untuk mencari item nya di SQL Product Selects\n\nimportant:\n1. greeting, selalu tanyakan kategori product terlebih dahulu, serta merk mobil secara spesifik agar tidak memakan banyak token\n2. jangan pernah tampilkan ID nya, ID hanya kita gunakan untuk kebutuhan system internal\n3. berikan return json yang standard agar dapat dikelola query"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        1536,
+        288
+      ],
+      "id": "20a5655f-136e-4991-a77b-df99072ebe27",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "resource": "Chatting",
+        "operation": "Stop Typing",
+        "session": "={{ $('Edit Fields').item.json.session }}",
+        "chatId": "={{ $('Edit Fields').item.json.payload.from }}",
+        "requestOptions": {}
+      },
+      "type": "@devlikeapro/n8n-nodes-waha.WAHA",
+      "typeVersion": 202502,
+      "position": [
+        2064,
+        288
+      ],
+      "id": "6cead32a-77ef-485f-a7f1-325cf1058f57",
+      "name": "Stop Typing",
+      "credentials": {
+        "wahaApi": {
+          "id": "n5mRTjBO5rbghKbN",
+          "name": "WAHA Atlas Digitalize"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "Chatting",
+        "operation": "Send Text",
+        "session": "={{ $('Edit Fields').item.json.session }}",
+        "chatId": "={{ $('Edit Fields').item.json.payload.from }}",
+        "text": "={{ $('AI Agent').item.json.output }}",
+        "requestOptions": {}
+      },
+      "type": "@devlikeapro/n8n-nodes-waha.WAHA",
+      "typeVersion": 202502,
+      "position": [
+        2288,
+        288
+      ],
+      "id": "d923c3cc-559e-4c3c-89b4-01d7f9555b2c",
+      "name": "Send a text message",
+      "credentials": {
+        "wahaApi": {
+          "id": "n5mRTjBO5rbghKbN",
+          "name": "WAHA Atlas Digitalize"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Edit Fields').item.json.payload.from }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        1472,
+        512
+      ],
+      "id": "840771ab-9dca-457f-b154-75c83d3d3c6f",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatDeepSeek",
+      "typeVersion": 1,
+      "position": [
+        1344,
+        512
+      ],
+      "id": "7ad6ecf9-ae0e-45ea-b1e7-ea656aaa5473",
+      "name": "DeepSeek Chat Model",
+      "credentials": {
+        "deepSeekApi": {
+          "id": "GkgyftLiUHYqwyTt",
+          "name": "DeepSeek account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "96fed767-b675-4af6-8aa4-25f4e33aca77",
+              "leftValue": "={{ $json.payload.from }}",
+              "rightValue": "6281390033891@c.us",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        448,
+        384
+      ],
+      "id": "166a6e2c-11bd-4c9d-8a15-326f02c232f5",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "resource": "Chatting",
+        "operation": "Send Text",
+        "session": "={{ $('Edit Fields').item.json.session }}",
+        "chatId": "={{ $('Edit Fields').item.json.payload.from }}",
+        "text": "anda belum daftar",
+        "requestOptions": {}
+      },
+      "type": "@devlikeapro/n8n-nodes-waha.WAHA",
+      "typeVersion": 202502,
+      "position": [
+        672,
+        480
+      ],
+      "id": "c3d19663-fb41-4d99-ae24-22e861f5bb07",
+      "name": "Send a text message1",
+      "credentials": {
+        "wahaApi": {
+          "id": "n5mRTjBO5rbghKbN",
+          "name": "WAHA Atlas Digitalize"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "WAHA Trigger": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Seen": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Start Typing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Start Typing": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Stop Typing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Stop Typing": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DeepSeek Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Send Seen",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a text message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "e20b6fbf-9b0c-45fa-addd-c284bfbbb0d7",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "11f912789c8aafae3b1af51c40e6506188eecbd1678f379b0ae158165f9d523c"
+  },
+  "id": "CpJFjBoylx6wYWnv",
+  "tags": []
+}

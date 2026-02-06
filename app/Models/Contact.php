@@ -24,6 +24,7 @@ class Contact extends Model
         'message',
         'language',
         'status',
+        'source',
     ];
 
     /**

@@ -1,0 +1,580 @@
+{
+    "name": "WhatsApp Chatbot - Atlas Digitalize (Optimized)",
+    "nodes": [
+        {
+            "parameters": {},
+            "type": "@devlikeapro/n8n-nodes-waha.wahaTrigger",
+            "typeVersion": 202502,
+            "position": [0, 300],
+            "id": "trigger-001",
+            "name": "WAHA Trigger",
+            "webhookId": "atlas-chatbot-webhook"
+        },
+        {
+            "parameters": {
+                "conditions": {
+                    "options": {
+                        "caseSensitive": true,
+                        "leftValue": "",
+                        "typeValidation": "strict",
+                        "version": 2
+                    },
+                    "conditions": [
+                        {
+                            "id": "filter-self",
+                            "leftValue": "={{ $json.payload.fromMe }}",
+                            "rightValue": false,
+                            "operator": {
+                                "type": "boolean",
+                                "operation": "equals"
+                            }
+                        },
+                        {
+                            "id": "filter-group",
+                            "leftValue": "={{ $json.payload.from }}",
+                            "rightValue": "@g.us",
+                            "operator": {
+                                "type": "string",
+                                "operation": "notContains"
+                            }
+                        }
+                    ],
+                    "combinator": "and"
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.if",
+            "typeVersion": 2.2,
+            "position": [220, 300],
+            "id": "filter-001",
+            "name": "Filter Messages"
+        },
+        {
+            "parameters": {
+                "assignments": {
+                    "assignments": [
+                        {
+                            "id": "session",
+                            "name": "session",
+                            "value": "={{ $json.session }}",
+                            "type": "string"
+                        },
+                        {
+                            "id": "chatId",
+                            "name": "chatId",
+                            "value": "={{ $json.payload.from }}",
+                            "type": "string"
+                        },
+                        {
+                            "id": "messageBody",
+                            "name": "messageBody",
+                            "value": "={{ $json.payload.body }}",
+                            "type": "string"
+                        },
+                        {
+                            "id": "senderName",
+                            "name": "senderName",
+                            "value": "={{ $json.payload._data.notifyName || 'Customer' }}",
+                            "type": "string"
+                        },
+                        {
+                            "id": "messageType",
+                            "name": "messageType",
+                            "value": "={{ $json.payload.type }}",
+                            "type": "string"
+                        }
+                    ]
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.set",
+            "typeVersion": 3.4,
+            "position": [440, 200],
+            "id": "extract-001",
+            "name": "Extract Message Data"
+        },
+        {
+            "parameters": {
+                "resource": "Chatting",
+                "operation": "Send Seen",
+                "session": "={{ $json.session }}",
+                "chatId": "={{ $json.chatId }}",
+                "requestOptions": {}
+            },
+            "type": "@devlikeapro/n8n-nodes-waha.WAHA",
+            "typeVersion": 202502,
+            "position": [660, 200],
+            "id": "seen-001",
+            "name": "Send Seen",
+            "credentials": {
+                "wahaApi": {
+                    "id": "n5mRTjBO5rbghKbN",
+                    "name": "WAHA Atlas Digitalize"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "resource": "Chatting",
+                "operation": "Start Typing",
+                "session": "={{ $json.session }}",
+                "chatId": "={{ $json.chatId }}",
+                "requestOptions": {}
+            },
+            "type": "@devlikeapro/n8n-nodes-waha.WAHA",
+            "typeVersion": 202502,
+            "position": [880, 200],
+            "id": "typing-001",
+            "name": "Start Typing",
+            "credentials": {
+                "wahaApi": {
+                    "id": "n5mRTjBO5rbghKbN",
+                    "name": "WAHA Atlas Digitalize"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "promptType": "define",
+                "text": "={{ $json.messageBody }}",
+                "options": {
+                    "systemMessage": "Anda adalah Atlas AI Assistant, customer service virtual dari **Atlas Digital Cipta Teknologi** - perusahaan IT Solutions yang berbasis di Indonesia.\n\n## Tentang Perusahaan\nAtlas Digital Cipta Teknologi adalah perusahaan teknologi yang menyediakan solusi digital untuk transformasi bisnis, termasuk pengembangan software, website, mobile apps, dan konsultasi IT.\n\n## Tugas Anda\n1. Menyambut customer dengan ramah dan profesional\n2. Memberikan informasi tentang layanan dan solusi Atlas\n3. Membantu menjadwalkan appointment/konsultasi\n4. Mengarahkan ke tim manusia jika diperlukan\n\n## Menu Utama (Tawarkan saat greeting awal)\nKetika customer pertama kali chat atau bilang 'menu', tawarkan opsi:\n1️⃣ Informasi tentang Atlas Digital\n2️⃣ Layanan & Solusi kami\n3️⃣ Portfolio & Proyek\n4️⃣ Jadwalkan Konsultasi\n5️⃣ Bicara dengan Tim Kami\n\n## Panduan Response\n- Gunakan bahasa Indonesia yang friendly namun profesional\n- Gunakan emoji secukupnya untuk kesan friendly 😊\n- Jika customer memilih nomor menu, proses sesuai pilihan\n- Gunakan tools yang tersedia untuk mengambil data terbaru\n- Jika diminta bicara dengan manusia, informasikan akan dihubungkan dan set flag handoff\n\n## Format Response\n- Untuk list, gunakan emoji numbering (1️⃣, 2️⃣, dst)\n- Untuk highlight, gunakan *bold*\n- Jaga response tetap ringkas dan mudah dibaca di WhatsApp\n- Maksimal 3-4 paragraf per response\n\n## Penting\n- JANGAN membuat informasi yang tidak ada di tools\n- Jika tidak yakin, tawarkan untuk menghubungkan ke tim manusia\n- Selalu akhiri dengan pertanyaan atau CTA yang jelas"
+                }
+            },
+            "type": "@n8n/n8n-nodes-langchain.agent",
+            "typeVersion": 3,
+            "position": [1100, 200],
+            "id": "agent-001",
+            "name": "Atlas AI Agent"
+        },
+        {
+            "parameters": {
+                "resource": "Chatting",
+                "operation": "Stop Typing",
+                "session": "={{ $('Extract Message Data').item.json.session }}",
+                "chatId": "={{ $('Extract Message Data').item.json.chatId }}",
+                "requestOptions": {}
+            },
+            "type": "@devlikeapro/n8n-nodes-waha.WAHA",
+            "typeVersion": 202502,
+            "position": [1380, 200],
+            "id": "stop-typing-001",
+            "name": "Stop Typing",
+            "credentials": {
+                "wahaApi": {
+                    "id": "n5mRTjBO5rbghKbN",
+                    "name": "WAHA Atlas Digitalize"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "resource": "Chatting",
+                "operation": "Send Text",
+                "session": "={{ $('Extract Message Data').item.json.session }}",
+                "chatId": "={{ $('Extract Message Data').item.json.chatId }}",
+                "text": "={{ $('Atlas AI Agent').item.json.output }}",
+                "requestOptions": {}
+            },
+            "type": "@devlikeapro/n8n-nodes-waha.WAHA",
+            "typeVersion": 202502,
+            "position": [1600, 200],
+            "id": "send-001",
+            "name": "Send Response",
+            "credentials": {
+                "wahaApi": {
+                    "id": "n5mRTjBO5rbghKbN",
+                    "name": "WAHA Atlas Digitalize"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "sessionIdType": "customKey",
+                "sessionKey": "={{ $('Extract Message Data').item.json.chatId }}"
+            },
+            "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+            "typeVersion": 1.3,
+            "position": [1020, 420],
+            "id": "memory-001",
+            "name": "Chat Memory"
+        },
+        {
+            "parameters": {
+                "options": {
+                    "temperature": 0.7
+                }
+            },
+            "type": "@n8n/n8n-nodes-langchain.lmChatDeepSeek",
+            "typeVersion": 1,
+            "position": [900, 420],
+            "id": "llm-001",
+            "name": "DeepSeek Chat Model",
+            "credentials": {
+                "deepSeekApi": {
+                    "id": "GkgyftLiUHYqwyTt",
+                    "name": "DeepSeek account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "name": "get_company_info",
+                "description": "Mengambil informasi tentang perusahaan Atlas Digital Cipta Teknologi termasuk visi, misi, dan profil perusahaan. Gunakan tool ini ketika customer bertanya tentang perusahaan, siapa Atlas, atau memilih menu informasi perusahaan.",
+                "method": "GET",
+                "url": "https://atlassite-api.atlasdigitalize.com/api/about",
+                "placeholderDefinitions": {
+                    "values": []
+                }
+            },
+            "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
+            "typeVersion": 1.1,
+            "position": [1140, 420],
+            "id": "tool-about",
+            "name": "Get Company Info"
+        },
+        {
+            "parameters": {
+                "name": "get_solutions",
+                "description": "Mengambil daftar semua layanan dan solusi yang ditawarkan Atlas Digital. Gunakan tool ini ketika customer bertanya tentang layanan, solusi, jasa, atau apa yang bisa Atlas bantu.",
+                "method": "GET",
+                "url": "https://atlassite-api.atlasdigitalize.com/api/solutions",
+                "placeholderDefinitions": {
+                    "values": []
+                }
+            },
+            "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
+            "typeVersion": 1.1,
+            "position": [1260, 420],
+            "id": "tool-solutions",
+            "name": "Get Solutions"
+        },
+        {
+            "parameters": {
+                "name": "get_solution_detail",
+                "description": "Mengambil detail spesifik dari satu layanan/solusi berdasarkan ID. Gunakan setelah get_solutions jika customer ingin tahu lebih detail tentang layanan tertentu.",
+                "method": "GET",
+                "url": "=https://atlassite-api.atlasdigitalize.com/api/solutions/{solutionId}",
+                "placeholderDefinitions": {
+                    "values": [
+                        {
+                            "name": "solutionId",
+                            "description": "ID dari solusi yang ingin dilihat detailnya"
+                        }
+                    ]
+                }
+            },
+            "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
+            "typeVersion": 1.1,
+            "position": [1380, 420],
+            "id": "tool-solution-detail",
+            "name": "Get Solution Detail"
+        },
+        {
+            "parameters": {
+                "name": "get_projects",
+                "description": "Mengambil daftar portfolio proyek yang sudah dikerjakan Atlas Digital. Gunakan tool ini ketika customer bertanya tentang portfolio, proyek sebelumnya, atau contoh pekerjaan.",
+                "method": "GET",
+                "url": "https://atlassite-api.atlasdigitalize.com/api/projects",
+                "placeholderDefinitions": {
+                    "values": []
+                }
+            },
+            "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
+            "typeVersion": 1.1,
+            "position": [1140, 540],
+            "id": "tool-projects",
+            "name": "Get Projects"
+        },
+        {
+            "parameters": {
+                "name": "get_project_detail",
+                "description": "Mengambil detail spesifik dari satu proyek berdasarkan ID. Gunakan untuk menampilkan case study atau detail proyek tertentu.",
+                "method": "GET",
+                "url": "=https://atlassite-api.atlasdigitalize.com/api/projects/{projectId}",
+                "placeholderDefinitions": {
+                    "values": [
+                        {
+                            "name": "projectId",
+                            "description": "ID dari proyek yang ingin dilihat detailnya"
+                        }
+                    ]
+                }
+            },
+            "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
+            "typeVersion": 1.1,
+            "position": [1260, 540],
+            "id": "tool-project-detail",
+            "name": "Get Project Detail"
+        },
+        {
+            "parameters": {
+                "name": "get_clients",
+                "description": "Mengambil daftar klien yang sudah bekerja sama dengan Atlas Digital. Gunakan ketika customer bertanya siapa saja klien Atlas atau minta referensi.",
+                "method": "GET",
+                "url": "https://atlassite-api.atlasdigitalize.com/api/clients",
+                "placeholderDefinitions": {
+                    "values": []
+                }
+            },
+            "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
+            "typeVersion": 1.1,
+            "position": [1380, 540],
+            "id": "tool-clients",
+            "name": "Get Clients"
+        },
+        {
+            "parameters": {
+                "name": "get_insights",
+                "description": "Mengambil artikel blog/insight terbaru dari Atlas Digital. Gunakan ketika customer ingin baca artikel atau tips seputar teknologi.",
+                "method": "GET",
+                "url": "https://atlassite-api.atlasdigitalize.com/api/insights",
+                "placeholderDefinitions": {
+                    "values": []
+                }
+            },
+            "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
+            "typeVersion": 1.1,
+            "position": [1140, 660],
+            "id": "tool-insights",
+            "name": "Get Insights"
+        },
+        {
+            "parameters": {
+                "name": "submit_appointment",
+                "description": "Mengirimkan permintaan konsultasi/appointment dari customer. Gunakan ketika customer ingin menjadwalkan konsultasi. Minta data: nama, email, nomor telepon, dan pesan/kebutuhan mereka.",
+                "method": "POST",
+                "url": "https://atlassite-api.atlasdigitalize.com/api/contacts",
+                "sendBody": true,
+                "specifyBody": "json",
+                "jsonBody": "={\n  \"name\": \"{customerName}\",\n  \"email\": \"{customerEmail}\",\n  \"phone\": \"{customerPhone}\",\n  \"company\": \"{customerCompany}\",\n  \"message\": \"{appointmentMessage}\",\n  \"source\": \"whatsapp_chatbot\"\n}",
+                "placeholderDefinitions": {
+                    "values": [
+                        {
+                            "name": "customerName",
+                            "description": "Nama lengkap customer"
+                        },
+                        {
+                            "name": "customerEmail",
+                            "description": "Email customer"
+                        },
+                        {
+                            "name": "customerPhone",
+                            "description": "Nomor telepon customer"
+                        },
+                        {
+                            "name": "customerCompany",
+                            "description": "Nama perusahaan customer (opsional, bisa kosong)"
+                        },
+                        {
+                            "name": "appointmentMessage",
+                            "description": "Pesan atau kebutuhan konsultasi customer"
+                        }
+                    ]
+                }
+            },
+            "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
+            "typeVersion": 1.1,
+            "position": [1260, 660],
+            "id": "tool-appointment",
+            "name": "Submit Appointment"
+        }
+    ],
+    "connections": {
+        "WAHA Trigger": {
+            "main": [
+                [
+                    {
+                        "node": "Filter Messages",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Filter Messages": {
+            "main": [
+                [
+                    {
+                        "node": "Extract Message Data",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Extract Message Data": {
+            "main": [
+                [
+                    {
+                        "node": "Send Seen",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Send Seen": {
+            "main": [
+                [
+                    {
+                        "node": "Start Typing",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Start Typing": {
+            "main": [
+                [
+                    {
+                        "node": "Atlas AI Agent",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Atlas AI Agent": {
+            "main": [
+                [
+                    {
+                        "node": "Stop Typing",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Stop Typing": {
+            "main": [
+                [
+                    {
+                        "node": "Send Response",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "DeepSeek Chat Model": {
+            "ai_languageModel": [
+                [
+                    {
+                        "node": "Atlas AI Agent",
+                        "type": "ai_languageModel",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Chat Memory": {
+            "ai_memory": [
+                [
+                    {
+                        "node": "Atlas AI Agent",
+                        "type": "ai_memory",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Get Company Info": {
+            "ai_tool": [
+                [
+                    {
+                        "node": "Atlas AI Agent",
+                        "type": "ai_tool",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Get Solutions": {
+            "ai_tool": [
+                [
+                    {
+                        "node": "Atlas AI Agent",
+                        "type": "ai_tool",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Get Solution Detail": {
+            "ai_tool": [
+                [
+                    {
+                        "node": "Atlas AI Agent",
+                        "type": "ai_tool",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Get Projects": {
+            "ai_tool": [
+                [
+                    {
+                        "node": "Atlas AI Agent",
+                        "type": "ai_tool",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Get Project Detail": {
+            "ai_tool": [
+                [
+                    {
+                        "node": "Atlas AI Agent",
+                        "type": "ai_tool",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Get Clients": {
+            "ai_tool": [
+                [
+                    {
+                        "node": "Atlas AI Agent",
+                        "type": "ai_tool",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Get Insights": {
+            "ai_tool": [
+                [
+                    {
+                        "node": "Atlas AI Agent",
+                        "type": "ai_tool",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Submit Appointment": {
+            "ai_tool": [
+                [
+                    {
+                        "node": "Atlas AI Agent",
+                        "type": "ai_tool",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    },
+    "active": false,
+    "settings": {
+        "executionOrder": "v1"
+    },
+    "meta": {
+        "templateCredsSetupCompleted": true
+    },
+    "tags": []
+}

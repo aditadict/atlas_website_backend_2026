@@ -29,6 +29,7 @@ class StoreContactRequest extends FormRequest
             'service' => 'nullable|string|max:255',
             'message' => 'required|string',
             'language' => 'nullable|in:en,id',
+            'source' => 'nullable|string|max:50',
         ];
     }
 }
